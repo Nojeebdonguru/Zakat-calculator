@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zakat Calculator — زكاة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lateef:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:       #C9A96E;
+      --gold-light: #E8D5A3;
+      --gold-dim:   #8C6E3F;
+      --green:      #1A3A2A;
+      --green-mid:  #244D38;
+      --green-light:#2E6149;
+      --cream:      #F7F1E8;
+      --cream-dark: #EDE3D0;
+      --text:       #1A1A1A;
+      --muted:      #6B6050;
+      --white:      #FFFFFF;
+      --shadow:     0 8px 40px rgba(26,58,42,0.18);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-height: 100vh;
+      background: var(--green);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--cream);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 16px 60px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ── Geometric background pattern ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(201,169,110,0.04) 0px, rgba(201,169,110,0.04) 1px, transparent 1px, transparent 40px),
+        repeating-linear-gradient(-45deg, rgba(201,169,110,0.04) 0px, rgba(201,169,110,0.04) 1px, transparent 1px, transparent 40px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px; right: -200px;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 52px 0 36px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .arabic-title {
+      font-family: 'Lateef', serif;
+      font-size: clamp(3rem, 10vw, 5.5rem);
+      color: var(--gold);
+      line-height: 1;
+      letter-spacing: 0.02em;
+      text-shadow: 0 2px 20px rgba(201,169,110,0.25);
+      display: block;
+      animation: fadeDown 0.7s ease both;
+    }
+
+    .en-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 3.5vw, 1.45rem);
+      font-style: italic;
+      color: var(--gold-light);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      display: block;
+      animation: fadeDown 0.7s 0.1s ease both;
+      opacity: 0;
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: rgba(232,213,163,0.55);
+      letter-spacing: 0.08em;
+      margin-top: 10px;
+      font-weight: 300;
+      animation: fadeDown 0.7s 0.2s ease both;
+      opacity: 0;
+    }
+
+    /* ── Ornament divider ── */
+    .ornament {
+      display: flex; align-items: center; gap: 12px;
+      margin: 24px auto 0;
+      width: fit-content;
+      animation: fadeDown 0.7s 0.3s ease both;
+      opacity: 0;
+    }
+    .ornament-line { width: 60px; height: 1px; background: linear-gradient(to right, transparent, var(--gold-dim)); }
+    .ornament-line.right { background: linear-gradient(to left, transparent, var(--gold-dim)); }
+    .ornament-diamond {
+      width: 7px; height: 7px;
+      background: var(--gold);
+      transform: rotate(45deg);
+    }
+
+    /* ── Card ── */
+    .card {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 560px;
+      background: var(--cream);
+      border-radius: 20px;
+      padding: 40px 36px 44px;
+      box-shadow: var(--shadow), 0 0 0 1px rgba(201,169,110,0.2);
+      color: var(--text);
+      animation: fadeUp 0.7s 0.35s ease both;
+      opacity: 0;
+    }
+
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: var(--cream-dark);
+    }
+
+    /* ── Field ── */
+    .field { margin-bottom: 20px; }
+
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .field label span {
+      font-size: 0.7rem;
+      font-weight: 300;
+      color: #B0A090;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex; align-items: center;
+    }
+
+    .currency {
+      position: absolute; left: 14px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--gold-dim);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 13px 14px 13px 34px;
+      border: 1.5px solid var(--cream-dark);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text);
+      background: var(--white);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    input[type="number"]:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,169,110,0.15);
+    }
+
+    input[type="number"].negative {
+      border-color: #C0392B;
+      box-shadow: 0 0 0 3px rgba(192,57,43,0.10);
+    }
+
+    .debt-note {
+      font-size: 0.68rem;
+      color: #B0A090;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--cream-dark);
+      margin: 28px 0;
+    }
+
+    /* ── Nisab info ── */
+    .nisab-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(201,169,110,0.07);
+      border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 28px;
+    }
+    .nisab-icon { font-size: 1.1rem; }
+    .nisab-text { font-size: 0.74rem; color: var(--muted); line-height: 1.5; }
+    .nisab-text strong { color: var(--gold-dim); font-weight: 600; }
+
+    /* ── Calculate button ── */
+    .btn-calculate {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+      color: var(--gold-light);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(201,169,110,0.3);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-calculate::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(201,169,110,0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn-calculate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,58,42,0.3); }
+    .btn-calculate:hover::before { opacity: 1; }
+    .btn-calculate:active { transform: translateY(0); }
+
+    /* ── Result panel ── */
+    .result-panel {
+      margin-top: 28px;
+      background: var(--green);
+      border-radius: 14px;
+      padding: 28px 28px 24px;
+      display: none;
+      animation: fadeUp 0.4s ease both;
+      border: 1px solid rgba(201,169,110,0.2);
+    }
+    .result-panel.show { display: block; }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      color: rgba(232,213,163,0.6);
+    }
+    .result-row .val { color: var(--gold-light); font-weight: 500; }
+
+    .result-total {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(201,169,110,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .result-total .label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--gold-light);
+    }
+    .result-total .amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .result-status {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 0.74rem;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+    }
+    .result-status.due {
+      background: rgba(201,169,110,0.12);
+      color: var(--gold-light);
+      border: 1px solid rgba(201,169,110,0.2);
+    }
+    .result-status.not-due {
+      background: rgba(46,97,73,0.3);
+      color: rgba(232,213,163,0.7);
+      border: 1px solid rgba(46,97,73,0.5);
+    }
+
+    /* ── Reset button ── */
+    .btn-reset {
+      display: block;
+      margin: 16px auto 0;
+      background: none;
+      border: none;
+      color: rgba(232,213,163,0.4);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.2s;
+    }
+    .btn-reset:hover { color: var(--gold-light); }
+
+    /* ── Footer ── */
+    footer {
+      position: relative; z-index: 1;
+      margin-top: 32px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: rgba(232,213,163,0.3);
+      letter-spacing: 0.06em;
+      line-height: 1.8;
+      max-width: 480px;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .card { padding: 28px 22px 32px; }
+      .result-panel { padding: 22px 18px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="arabic-title">زكاة</span>
+    <span class="en-title">Zakat Calculator</span>
+    <p class="subtitle">Purify Your Wealth · 2.5% Annual Obligation</p>
+    <div class="ornament">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line right"></div>
+    </div>
+  </header>
+
+  <div class="card">
+
+    <div class="section-label">Your Assets</div>
+
+    <div class="field">
+      <label>Cash &amp; Savings <span>Bank balance, cash on hand</span></label>
+      <div class="input-wrap">
+        <span class="currency">$</span>
+        <input type="number" id="savings" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Gold &amp; Silver Value <span>Current market value</span></label>
+      <div class="input-wrap">
+        <span class="currency">$</span>
+        <input type="number" id="gold" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Business &amp; Investments <span>Stocks, inventory, receivables</span></label>
+      <div class="input-wrap">
+        <span class="currency">$</span>
+        <input type="number" id="investments" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">Deductions</div>
+
+    <div class="field">
+      <label>Outstanding Debts <span>Amounts you owe</span></label>
+      <div class="input-wrap">
+        <span class="currency">$</span>
+        <input type="number" id="debts" placeholder="0.00" min="0" step="0.01"/>
+      </div>
+      <p class="debt-note">Debts are subtracted from total assets before calculating Zakat.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="nisab-row">
+      <span class="nisab-icon">⚖️</span>
+      <div class="nisab-text">
+        <strong>Nisab Threshold</strong> — Zakat is only due if your net assets
+        equal or exceed the value of <strong>85g of gold</strong> or <strong>595g of silver</strong>.
+        The estimated USD nisab is shown in your results.
+      </div>
+    </div>
+
+    <button class="btn-calculate" onclick="calculateZakat()">
+      Calculate My Zakat
+    </button>
+
+    <!-- Result Panel -->
+    <div class="result-panel" id="resultPanel">
+      <div class="result-row">
+        <span>Total Assets</span>
+        <span class="val" id="resAssets">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span>Less: Debts</span>
+        <span class="val" id="resDebts">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span>Net Zakatable Wealth</span>
+        <span class="val" id="resNet">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span>Nisab Threshold (est.)</span>
+        <span class="val" id="resNisab">—</span>
+      </div>
+
+      <div class="result-total">
+        <span class="label">Zakat Due (2.5%)</span>
+        <span class="amount" id="resZakat">$0.00</span>
+      </div>
+
+      <div class="result-status" id="resStatus"></div>
+      <button class="btn-reset" onclick="resetForm()">Reset Calculator</button>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>This calculator provides an estimate based on standard Hanafi/majority fiqh rulings.</p>
+    <p>For specific circumstances, please consult a qualified Islamic scholar.</p>
+  </footer>
+
+  <script>
+    // Estimated nisab in USD (based on ~85g gold at ~$62/g)
+    const NISAB_USD = 5270;
+    const ZAKAT_RATE = 0.025;
+
+    function getVal(id) {
+      const v = parseFloat(document.getElementById(id).value);
+      return isNaN(v) || v < 0 ? 0 : v;
+    }
+
+    function fmt(n) {
+      return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function calculateZakat() {
+      const savings     = getVal('savings');
+      const gold        = getVal('gold');
+      const investments = getVal('investments');
+      const debts       = getVal('debts');
+
+      const totalAssets = savings + gold + investments;
+      const netWealth   = Math.max(0, totalAssets - debts);
+      const zakatDue    = netWealth >= NISAB_USD ? netWealth * ZAKAT_RATE : 0;
+
+      document.getElementById('resAssets').textContent = fmt(totalAssets);
+      document.getElementById('resDebts').textContent  = fmt(debts);
+      document.getElementById('resNet').textContent    = fmt(netWealth);
+      document.getElementById('resNisab').textContent  = fmt(NISAB_USD) + ' (est.)';
+      document.getElementById('resZakat').textContent  = fmt(zakatDue);
+
+      const statusEl = document.getElementById('resStatus');
+      if (netWealth >= NISAB_USD) {
+        statusEl.textContent  = '✦ Zakat is due on your wealth — Barak Allahu Feek';
+        statusEl.className    = 'result-status due';
+      } else {
+        statusEl.textContent  = 'Your wealth is below the nisab threshold — Zakat is not yet due';
+        statusEl.className    = 'result-status not-due';
+      }
+
+      const panel = document.getElementById('resultPanel');
+      panel.classList.remove('show');
+      void panel.offsetWidth; // reflow for re-animation
+      panel.classList.add('show');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function resetForm() {
+      ['savings', 'gold', 'investments', 'debts'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('resultPanel').classList.remove('show');
+    }
+
+    // Allow Enter key to trigger calculation
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') calculateZakat();
+    });
+  </script>
+</body>
+</html>
