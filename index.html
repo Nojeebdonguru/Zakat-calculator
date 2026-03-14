@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Zakat Calculator — Comprehensive Islamic Wealth Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Deep Forest Green + Islamic Gold
+   ═══════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --gold:#C9A84C; --gold-light:#E8C97A; --gold-dim:#9B7A30; --gold-pale:#FDF6E3;
+  --green-deep:#0A1F14; --green:#122B1E; --green-mid:#1A3D2B; --green-panel:#1F4D37;
+  --green-card:#163527; --green-bright:#2A6B4A;
+  --cream:#F7F2E8; --cream-dim:#EDE5D0;
+  --text-muted:rgba(247,242,232,0.55); --text-faint:rgba(247,242,232,0.3);
+  --border:rgba(201,168,76,0.22); --border-strong:rgba(201,168,76,0.45);
+  --success:#27AE60; --danger:#E74C3C; --info:#2980B9;
+  --radius:12px; --radius-sm:8px;
+  --shadow:0 4px 24px rgba(0,0,0,0.35);
+}
+
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--green-deep);
+  color:var(--cream);
+  min-height:100vh;
+  overflow-x:hidden;
+  position:relative;
+}
+
+/* Geometric Islamic pattern background */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    repeating-linear-gradient(45deg,transparent,transparent 48px,rgba(201,168,76,0.018) 48px,rgba(201,168,76,0.018) 49px),
+    repeating-linear-gradient(-45deg,transparent,transparent 48px,rgba(201,168,76,0.018) 48px,rgba(201,168,76,0.018) 49px),
+    repeating-linear-gradient(0deg,transparent,transparent 48px,rgba(201,168,76,0.01) 48px,rgba(201,168,76,0.01) 49px);
+  pointer-events:none;z-index:0;
+}
+
+.page{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:40px 18px 80px}
+
+/* ── Typography ── */
+h1{font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.04em}
+h2,h3{font-family:'Cormorant Garamond',serif;font-weight:400}
+.label-caps{font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+
+/* ── Header ── */
+.site-header{text-align:center;margin-bottom:36px;animation:fadeUp .5s ease both}
+.bismillah{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);opacity:.9;margin-bottom:10px;direction:rtl}
+.ornament{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px}
+.ornament::before,.ornament::after{content:'';flex:1;max-width:80px;height:.5px;background:linear-gradient(to right,transparent,var(--gold))}
+.ornament::after{background:linear-gradient(to left,transparent,var(--gold))}
+.diamond-row{display:flex;gap:6px;align-items:center}
+.diamond{width:7px;height:7px;background:var(--gold);transform:rotate(45deg)}
+.diamond.sm{width:4px;height:4px;opacity:.5}
+.site-header h1{font-size:clamp(28px,7vw,46px);color:var(--cream);margin-bottom:6px}
+.site-header h1 em{color:var(--gold);font-style:italic}
+.site-header .tagline{font-size:12px;color:var(--text-muted);letter-spacing:.1em}
+
+/* ── Live Prices Bar ── */
+.prices-bar{
+  background:var(--green-panel);
+  border:.5px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 20px;
+  display:flex;flex-wrap:wrap;gap:12px;
+  align-items:center;justify-content:space-between;
+  margin-bottom:24px;
+  animation:fadeUp .5s .05s ease both;
+}
+.price-item{display:flex;flex-direction:column;align-items:center}
+.price-item .plbl{font-size:10px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.price-item .pval{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;color:var(--cream)}
+.price-item .psub{font-size:10px;color:var(--text-faint)}
+.price-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+/* ── Base Currency + Nisab toggles ── */
+.controls-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;animation:fadeUp .5s .08s ease both}
+.toggle-group{display:flex;gap:6px;flex:1;min-width:200px}
+.toggle-group label{font-size:10px;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;display:block}
+.tog{
+  flex:1;padding:8px 6px;
+  border:.5px solid var(--border);border-radius:var(--radius-sm);
+  background:transparent;color:rgba(247,242,232,.45);
+  font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;
+  transition:all .2s;text-align:center;
+}
+.tog:hover{border-color:var(--gold-dim);color:var(--cream)}
+.tog.active{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--gold-light);font-weight:500}
+
+/* ── Section card ── */
+.section-card{
+  background:var(--green-card);
+  border:.5px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:14px;
+  overflow:hidden;
+  animation:fadeUp .5s ease both;
+}
+.section-head{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 20px;
+  cursor:pointer;
+  user-select:none;
+  transition:background .2s;
+}
+.section-head:hover{background:rgba(201,168,76,.05)}
+.section-icon{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(201,168,76,.1);
+  border:.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:16px;
+}
+.section-title-wrap{flex:1}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;color:var(--cream)}
+.section-subtotal{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold-light);margin-left:auto}
+.chevron{color:var(--text-muted);transition:transform .25s;font-size:12px;margin-left:8px}
+.section-head.open .chevron{transform:rotate(180deg)}
+.section-body{display:none;padding:0 20px 20px;border-top:.5px solid var(--border)}
+.section-body.open{display:block}
+
+/* ── Fields ── */
+.fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+@media(max-width:520px){.fields-grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column}
+.field-lbl{font-size:12px;color:rgba(247,242,232,.65);margin-bottom:6px}
+.field-hint{font-size:10px;color:var(--text-faint);margin-top:3px;font-style:italic}
+.inp-wrap{position:relative;display:flex;align-items:center}
+.inp-prefix{
+  position:absolute;left:11px;
+  font-family:'Cormorant Garamond',serif;font-size:15px;
+  color:var(--gold-dim);pointer-events:none;z-index:1;white-space:nowrap;
+}
+.inp-suffix{
+  position:absolute;right:11px;
+  font-size:11px;color:var(--text-faint);pointer-events:none;
+}
+input[type=number]{
+  width:100%;
+  background:var(--green-deep);
+  border:.5px solid rgba(201,168,76,.18);
+  border-radius:var(--radius-sm);
+  padding:10px 36px 10px 30px;
+  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;
+  color:var(--cream);outline:none;
+  transition:border-color .2s;
+  -moz-appearance:textfield;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=number]:focus{border-color:var(--gold)}
+input[type=number]::placeholder{color:rgba(247,242,232,.15);font-size:16px}
+input[type=number].wide{padding-left:14px}
+
+/* ── Toggle input mode ── */
+.mode-toggle{display:flex;gap:6px;margin-bottom:10px;margin-top:12px}
+.mode-btn{
+  padding:5px 12px;font-size:11px;
+  border:.5px solid var(--border);border-radius:20px;
+  background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;
+}
+.mode-btn.active{background:rgba(201,168,76,.1);border-color:var(--gold);color:var(--gold-light)}
+
+/* ── Nisab Banner ── */
+.nisab-banner{
+  background:var(--green-panel);
+  border:.5px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 20px;
+  display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:center;
+  margin-bottom:24px;
+  animation:fadeUp .5s .1s ease both;
+}
+@media(max-width:520px){.nisab-banner{grid-template-columns:1fr 1fr}}
+.nisab-item .nlbl{font-size:10px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
+.nisab-item .nval{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;color:var(--cream)}
+.nisab-item .nsub{font-size:10px;color:var(--text-faint);margin-top:1px}
+.nisab-active{
+  background:rgba(201,168,76,.1);border:.5px solid var(--gold);
+  border-radius:var(--radius-sm);padding:6px 14px;
+  font-size:11px;color:var(--gold-light);font-weight:500;white-space:nowrap;text-align:center;
+}
+
+/* ── Result Box ── */
+.result-box{
+  border-radius:var(--radius);
+  padding:24px 22px;
+  margin-top:20px;
+  display:none;
+  animation:fadeUp .35s ease both;
+}
+.result-box.eligible{background:linear-gradient(135deg,#163527,#1A4530);border:.5px solid rgba(201,168,76,.5)}
+.result-box.ineligible{background:var(--green-card);border:.5px solid rgba(201,168,76,.15)}
+.result-status{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.status-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.eligible .status-icon{background:rgba(201,168,76,.12);border:.5px solid var(--gold)}
+.ineligible .status-icon{background:rgba(247,242,232,.04);border:.5px solid rgba(247,242,232,.12)}
+.status-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--cream);margin-bottom:2px}
+.status-sub{font-size:12px;color:var(--text-muted)}
+.result-rows{border-top:.5px solid rgba(201,168,76,.15);padding-top:14px;margin-bottom:16px}
+.rrow{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;font-size:13px;border-bottom:.5px solid rgba(247,242,232,.04)}
+.rrow .rl{color:var(--text-muted)}
+.rrow .rv{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--cream)}
+.rrow .rv.highlight{color:var(--gold-light);font-size:20px;font-weight:500}
+.rrow .rv.danger{color:#E74C3C}
+.zakat-final{text-align:center;padding:16px;border-top:.5px solid rgba(201,168,76,.25);margin-top:4px}
+.zf-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.zf-amount{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--gold-light);line-height:1}
+.zf-calc{font-size:12px;color:rgba(247,242,232,.3);margin-top:6px}
+.shortfall-msg{font-size:13px;color:var(--text-muted);text-align:center;margin-top:12px;font-style:italic}
+
+/* ── Breakdown Table ── */
+.breakdown-section{margin-top:20px}
+.breakdown-title{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.breakdown-table{width:100%;border-collapse:collapse;font-size:12px}
+.breakdown-table th{font-weight:500;color:var(--text-muted);padding:6px 10px;text-align:left;border-bottom:.5px solid var(--border)}
+.breakdown-table td{padding:7px 10px;border-bottom:.5px solid rgba(247,242,232,.05)}
+.breakdown-table td:last-child{text-align:right;font-family:'Cormorant Garamond',serif;font-size:15px}
+.breakdown-table tr:last-child td{border-bottom:none}
+.cat-pill{
+  display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;
+  background:rgba(201,168,76,.1);color:var(--gold-light);
+}
+
+/* ── Educational Panel ── */
+.edu-panel{
+  background:var(--green-card);border:.5px solid var(--border);
+  border-radius:var(--radius);margin-top:20px;overflow:hidden;
+  animation:fadeUp .5s ease both;
+}
+.edu-head{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 20px;cursor:pointer;user-select:none;
+  transition:background .2s;
+}
+.edu-head:hover{background:rgba(201,168,76,.04)}
+.edu-head-icon{font-size:20px}
+.edu-head-text h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;margin-bottom:2px}
+.edu-head-text p{font-size:11px;color:var(--text-muted)}
+.edu-body{display:none;padding:0 20px 22px;border-top:.5px solid var(--border)}
+.edu-body.open{display:block}
+.edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+@media(max-width:600px){.edu-grid{grid-template-columns:1fr}}
+.edu-card{
+  background:var(--green-panel);border:.5px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px 16px;
+}
+.edu-card-icon{font-size:22px;margin-bottom:8px}
+.edu-card h4{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:500;color:var(--gold-light);margin-bottom:5px}
+.edu-card p{font-size:12px;color:var(--text-muted);line-height:1.7}
+.edu-card.zakatable{border-left:2px solid var(--success)}
+.edu-card.not-zakatable{border-left:2px solid #E74C3C}
+.edu-card.conditional{border-left:2px solid var(--gold)}
+.edu-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;margin-bottom:4px;font-size:11px}
+.edu-legend span{display:flex;align-items:center;gap:6px}
+.edu-legend .dot{width:10px;height:10px;border-radius:2px}
+.edu-hadith{
+  background:rgba(201,168,76,.07);border:.5px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px 16px;margin-top:14px;
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;
+  color:rgba(247,242,232,.7);line-height:1.8;text-align:center;
+}
+
+/* ── Footer ── */
+.site-footer{text-align:center;margin-top:48px;font-size:11px;color:rgba(247,242,232,.2);letter-spacing:.06em;line-height:2}
+
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.section-card:nth-child(1){animation-delay:.06s}
+.section-card:nth-child(2){animation-delay:.09s}
+.section-card:nth-child(3){animation-delay:.12s}
+.section-card:nth-child(4){animation-delay:.15s}
+.section-card:nth-child(5){animation-delay:.18s}
+.section-card:nth-child(6){animation-delay:.21s}
+.section-card:nth-child(7){animation-delay:.24s}
+
+/* ── Loading spinner ── */
+.spinner{display:inline-block;width:10px;height:10px;border:1.5px solid rgba(201,168,76,.3);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Responsive ── */
+@media(max-width:480px){
+  .page{padding:24px 14px 60px}
+  .section-head{padding:13px 16px}
+  .section-body{padding:0 16px 16px}
+  .nisab-banner{grid-template-columns:1fr 1fr;padding:12px 14px}
+  .zf-amount{font-size:38px}
+  .prices-bar{padding:12px 14px;gap:8px}
+  .tracker-grid{grid-template-columns:1fr!important}
+  .tracker-stats{grid-template-columns:1fr 1fr!important}
+}
+
+/* ── Zakat Year Tracker ── */
+.tracker-card{
+  background:var(--green-card);
+  border:.5px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:14px;
+  overflow:hidden;
+  animation:fadeUp .5s .03s ease both;
+}
+.tracker-head{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 20px;cursor:pointer;user-select:none;
+  transition:background .2s;
+}
+.tracker-head:hover{background:rgba(201,168,76,.05)}
+.tracker-body{padding:20px;border-top:.5px solid var(--border)}
+.tracker-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  align-items:start;
+}
+/* Date input row */
+.tracker-date-row{display:flex;flex-direction:column;gap:5px}
+.tracker-date-row label{font-size:11px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+.tracker-date-row input[type=date]{
+  background:var(--green-deep);
+  border:.5px solid rgba(201,168,76,.25);
+  border-radius:var(--radius-sm);
+  padding:10px 13px;
+  font-family:'DM Sans',sans-serif;font-size:13px;
+  color:var(--cream);outline:none;
+  transition:border-color .2s;
+  color-scheme:dark;
+  width:100%;
+}
+.tracker-date-row input[type=date]:focus{border-color:var(--gold)}
+/* Progress bar */
+.progress-wrap{margin-top:18px}
+.progress-label-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.progress-label-row .pl{font-size:11px;color:var(--text-muted);letter-spacing:.06em}
+.progress-label-row .pct{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:var(--gold-light)}
+.progress-track{
+  width:100%;height:10px;
+  background:rgba(201,168,76,.1);
+  border-radius:20px;
+  border:.5px solid var(--border);
+  overflow:hidden;
+  position:relative;
+}
+.progress-fill{
+  height:100%;border-radius:20px;
+  background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-light));
+  transition:width .6s cubic-bezier(.4,0,.2,1);
+  position:relative;min-width:0;
+}
+.progress-fill::after{
+  content:'';position:absolute;right:0;top:0;bottom:0;width:4px;
+  background:rgba(255,255,255,.35);border-radius:2px;
+}
+.progress-months{
+  display:flex;justify-content:space-between;
+  margin-top:6px;padding:0 1px;
+}
+.progress-months span{font-size:9px;color:var(--text-faint);letter-spacing:.04em}
+/* Stats grid */
+.tracker-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin-top:16px;
+}
+.tstat{
+  background:var(--green-panel);
+  border:.5px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:12px 14px;
+}
+.tstat .ts-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.tstat .ts-value{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;color:var(--cream);line-height:1.2}
+.tstat .ts-sub{font-size:10px;color:var(--text-faint);margin-top:2px}
+/* Status badge */
+.hawl-status{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:20px;
+  font-size:11px;font-weight:500;letter-spacing:.06em;
+  margin-top:14px;
+}
+.hawl-status.complete{background:rgba(39,174,96,.12);border:.5px solid rgba(39,174,96,.35);color:#6FCF97}
+.hawl-status.pending{background:rgba(201,168,76,.1);border:.5px solid rgba(201,168,76,.3);color:var(--gold-light)}
+.hawl-status.overdue{background:rgba(231,76,60,.1);border:.5px solid rgba(231,76,60,.3);color:#EB5757}
+.hawl-dot{width:6px;height:6px;border-radius:50%}
+.hawl-status.complete .hawl-dot{background:#6FCF97;animation:pulse 2s infinite}
+.hawl-status.pending  .hawl-dot{background:var(--gold)}
+.hawl-status.overdue  .hawl-dot{background:#EB5757;animation:pulse 1.2s infinite}
+/* Hijri label */
+.hijri-label{font-size:11px;color:var(--text-faint);margin-top:5px;font-style:italic}
+/* Milestone markers */
+.milestones{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.milestone{
+  font-size:10px;padding:3px 9px;border-radius:10px;
+  background:rgba(201,168,76,.07);border:.5px solid var(--border);
+  color:var(--text-muted);
+}
+.milestone.passed{background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.25);color:#6FCF97}
+.milestone.current{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold-light);font-weight:500}
+/* ── Locale detection pill ── */
+.locale-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(201,168,76,.08);
+  border:.5px solid rgba(201,168,76,.25);
+  border-radius:20px;padding:4px 12px;
+  font-size:11px;color:var(--text-muted);
+  transition:all .3s;
+}
+.locale-pill.detected{
+  background:rgba(39,174,96,.08);
+  border-color:rgba(39,174,96,.3);
+  color:#6FCF97;
+}
+.locale-pill .lp-flag{font-size:14px;line-height:1}
+.locale-pill .lp-text{letter-spacing:.04em}
+.cur-row-wrap{display:flex;flex-direction:column;gap:5px}
+.cur-btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.tog.detected-cur{
+  border-color:rgba(39,174,96,.5)!important;
+  color:#6FCF97!important;
+  background:rgba(39,174,96,.07)!important;
+}
+.tog.detected-cur.active{
+  border-color:var(--gold)!important;
+  color:var(--gold-light)!important;
+  background:rgba(201,168,76,.12)!important;
+}
+/* More currencies overflow */
+.more-currencies{
+  display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;
+}
+.more-currencies.hidden{display:none}
+.show-more-btn{
+  font-size:10px;color:var(--text-faint);
+  background:none;border:.5px solid var(--border);
+  border-radius:20px;padding:3px 10px;cursor:pointer;
+  transition:all .15s;letter-spacing:.06em;
+}
+.show-more-btn:hover{color:var(--cream);border-color:var(--gold-dim)}
+</style>
+<body>
+<div class="page">
+
+<!-- ═══ HEADER ═══════════════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+  <div class="ornament">
+    <div class="diamond-row">
+      <div class="diamond sm"></div>
+      <div class="diamond"></div>
+      <div class="diamond sm"></div>
+    </div>
+  </div>
+  <h1>Zakat <em>Calculator</em></h1>
+  <p class="tagline">Comprehensive Islamic Wealth Calculator · Multi-Asset · Live Prices</p>
+</header>
+
+<!-- ═══ LIVE PRICES BAR ═══════════════════════════════════════════ -->
+<div class="prices-bar" id="pricesBar">
+  <div class="price-item">
+    <span class="plbl">Gold / gram</span>
+    <span class="pval" id="pGold">—</span>
+    <span class="psub">24K USD</span>
+  </div>
+  <div class="price-item">
+    <span class="plbl">Silver / gram</span>
+    <span class="pval" id="pSilver">—</span>
+    <span class="psub">USD</span>
+  </div>
+  <div class="price-item">
+    <span class="plbl">Bitcoin</span>
+    <span class="pval" id="pBTC">—</span>
+    <span class="psub">USD</span>
+  </div>
+  <div class="price-item">
+    <span class="plbl">Ethereum</span>
+    <span class="pval" id="pETH">—</span>
+    <span class="psub">USD</span>
+  </div>
+  <div class="price-status" id="priceStatus">
+    <span class="spinner"></span> Fetching live prices…
+  </div>
+</div>
+
+<!-- ═══ CONTROLS ═══════════════════════════════════════════════════ -->
+<div class="controls-row">
+  <div class="toggle-group" style="flex-direction:column;flex:2">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <label style="margin-bottom:0">Base Currency</label>
+      <div class="locale-pill" id="localePill">
+        <span class="lp-flag" id="localeFlag">🌐</span>
+        <span class="lp-text" id="localeText">Detecting location…</span>
+      </div>
+    </div>
+    <div class="cur-row-wrap">
+      <!-- Primary 4 always visible -->
+      <div class="cur-btn-row" id="primaryCurrencyRow">
+        <button class="tog" id="curBtn_USD" onclick="setCurrencyManual('USD','$',this)">$ USD</button>
+        <button class="tog" id="curBtn_NGN" onclick="setCurrencyManual('NGN','₦',this)">₦ NGN</button>
+        <button class="tog" id="curBtn_GBP" onclick="setCurrencyManual('GBP','£',this)">£ GBP</button>
+        <button class="tog" id="curBtn_EUR" onclick="setCurrencyManual('EUR','€',this)">€ EUR</button>
+        <button class="show-more-btn" id="showMoreCur" onclick="toggleMoreCurrencies()">More ▾</button>
+      </div>
+      <!-- Extended currencies (hidden by default, shown if locale needs it or user clicks More) -->
+      <div class="more-currencies hidden" id="moreCurrencies">
+        <button class="tog" id="curBtn_SAR" onclick="setCurrencyManual('SAR','﷼',this)">﷼ SAR</button>
+        <button class="tog" id="curBtn_AED" onclick="setCurrencyManual('AED','د.إ',this)">د.إ AED</button>
+        <button class="tog" id="curBtn_MYR" onclick="setCurrencyManual('MYR','RM',this)">RM MYR</button>
+        <button class="tog" id="curBtn_PKR" onclick="setCurrencyManual('PKR','₨',this)">₨ PKR</button>
+        <button class="tog" id="curBtn_BDT" onclick="setCurrencyManual('BDT','৳',this)">৳ BDT</button>
+        <button class="tog" id="curBtn_TRY" onclick="setCurrencyManual('TRY','₺',this)">₺ TRY</button>
+        <button class="tog" id="curBtn_EGP" onclick="setCurrencyManual('EGP','E£',this)">E£ EGP</button>
+        <button class="tog" id="curBtn_INR" onclick="setCurrencyManual('INR','₹',this)">₹ INR</button>
+        <button class="tog" id="curBtn_IDR" onclick="setCurrencyManual('IDR','Rp',this)">Rp IDR</button>
+        <button class="tog" id="curBtn_CAD" onclick="setCurrencyManual('CAD','C$',this)">C$ CAD</button>
+        <button class="tog" id="curBtn_AUD" onclick="setCurrencyManual('AUD','A$',this)">A$ AUD</button>
+      </div>
+    </div>
+  </div>
+  <div class="toggle-group" style="flex-direction:column">
+    <label>Nisab Standard</label>
+    <div style="display:flex;gap:6px">
+      <button class="tog active" id="nisabGoldBtn" onclick="setNisab('gold',this)">Gold (85g)</button>
+      <button class="tog" id="nisabSilverBtn" onclick="setNisab('silver',this)">Silver (595g)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NISAB BANNER ════════════════════════════════════════════════ -->
+<div class="nisab-banner">
+  <div class="nisab-item">
+    <div class="nlbl">Gold Nisab (85g)</div>
+    <div class="nval" id="nisabGoldVal">—</div>
+    <div class="nsub" id="nisabGoldSub">85 × gold price</div>
+  </div>
+  <div class="nisab-item">
+    <div class="nlbl">Silver Nisab (595g)</div>
+    <div class="nval" id="nisabSilverVal">—</div>
+    <div class="nsub" id="nisabSilverSub">595 × silver price</div>
+  </div>
+  <div class="nisab-active" id="nisabActiveLabel">Using Gold Nisab</div>
+</div>
+
+<!-- ═══ ASSET SECTIONS ══════════════════════════════════════════════ -->
+
+<!-- 1. CASH ASSETS -->
+<div class="section-card">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="section-icon">💵</div>
+    <div class="section-title-wrap">
+      <div class="label-caps">Category 1</div>
+      <div class="section-title">Cash Assets</div>
+    </div>
+    <div class="section-subtotal" id="sub-cash">—</div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="section-body">
+    <div class="fields-grid">
+      <div class="field">
+        <div class="field-lbl">Cash in USD</div>
+        <div class="inp-wrap"><span class="inp-prefix">$</span>
+          <input type="number" id="cash_usd" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Cash in NGN</div>
+        <div class="inp-wrap"><span class="inp-prefix">₦</span>
+          <input type="number" id="cash_ngn" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Cash in GBP</div>
+        <div class="inp-wrap"><span class="inp-prefix">£</span>
+          <input type="number" id="cash_gbp" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Other currencies (converted to USD)</div>
+        <div class="inp-wrap"><span class="inp-prefix">$</span>
+          <input type="number" id="cash_other" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+        <div class="field-hint">Enter equivalent USD value</div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Savings accounts</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="cash_savings" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Money market / deposits</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="cash_mm" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. PRECIOUS METALS -->
+<div class="section-card">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="section-icon">🥇</div>
+    <div class="section-title-wrap">
+      <div class="label-caps">Category 2</div>
+      <div class="section-title">Precious Metals</div>
+    </div>
+    <div class="section-subtotal" id="sub-metals">—</div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="section-body">
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="setMode('metals','grams',this)">Enter in Grams</button>
+      <button class="mode-btn" onclick="setMode('metals','value',this)">Enter as Value</button>
+    </div>
+    <div id="metals-grams">
+      <div class="fields-grid">
+        <div class="field">
+          <div class="field-lbl">Gold — weight (grams)</div>
+          <div class="inp-wrap">
+            <input type="number" class="wide" id="gold_g" min="0" placeholder="0" oninput="calculate()"/>
+            <span class="inp-suffix">g</span>
+          </div>
+          <div class="field-hint" id="gold_g_hint">Value: —</div>
+        </div>
+        <div class="field">
+          <div class="field-lbl">Silver — weight (grams)</div>
+          <div class="inp-wrap">
+            <input type="number" class="wide" id="silver_g" min="0" placeholder="0" oninput="calculate()"/>
+            <span class="inp-suffix">g</span>
+          </div>
+          <div class="field-hint" id="silver_g_hint">Value: —</div>
+        </div>
+      </div>
+    </div>
+    <div id="metals-value" style="display:none">
+      <div class="fields-grid">
+        <div class="field">
+          <div class="field-lbl">Gold — total value</div>
+          <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+            <input type="number" id="gold_v" min="0" placeholder="0.00" oninput="calculate()"/>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-lbl">Silver — total value</div>
+          <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+            <input type="number" id="silver_v" min="0" placeholder="0.00" oninput="calculate()"/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fields-grid" style="margin-top:10px">
+      <div class="field">
+        <div class="field-lbl">Other precious metals (value in USD)</div>
+        <div class="inp-wrap"><span class="inp-prefix">$</span>
+          <input type="number" id="metals_other" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. CRYPTOCURRENCY -->
+<div class="section-card">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="section-icon">₿</div>
+    <div class="section-title-wrap">
+      <div class="label-caps">Category 3</div>
+      <div class="section-title">Cryptocurrency</div>
+    </div>
+    <div class="section-subtotal" id="sub-crypto">—</div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="section-body">
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="setMode('crypto','qty',this)">Enter Quantity</button>
+      <button class="mode-btn" onclick="setMode('crypto','value',this)">Enter Total Value</button>
+    </div>
+    <div id="crypto-qty">
+      <div class="fields-grid">
+        <div class="field">
+          <div class="field-lbl">Bitcoin (BTC)</div>
+          <div class="inp-wrap">
+            <input type="number" class="wide" id="btc_qty" min="0" placeholder="0.00000000" step="0.00000001" oninput="calculate()"/>
+            <span class="inp-suffix">BTC</span>
+          </div>
+          <div class="field-hint" id="btc_hint">Value: —</div>
+        </div>
+        <div class="field">
+          <div class="field-lbl">Ethereum (ETH)</div>
+          <div class="inp-wrap">
+            <input type="number" class="wide" id="eth_qty" min="0" placeholder="0.000000" step="0.000001" oninput="calculate()"/>
+            <span class="inp-suffix">ETH</span>
+          </div>
+          <div class="field-hint" id="eth_hint">Value: —</div>
+        </div>
+      </div>
+    </div>
+    <div id="crypto-value" style="display:none">
+      <div class="fields-grid">
+        <div class="field">
+          <div class="field-lbl">Bitcoin total value (USD)</div>
+          <div class="inp-wrap"><span class="inp-prefix">$</span>
+            <input type="number" id="btc_v" min="0" placeholder="0.00" oninput="calculate()"/>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-lbl">Ethereum total value (USD)</div>
+          <div class="inp-wrap"><span class="inp-prefix">$</span>
+            <input type="number" id="eth_v" min="0" placeholder="0.00" oninput="calculate()"/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fields-grid" style="margin-top:10px">
+      <div class="field">
+        <div class="field-lbl">Other crypto (total value in USD)</div>
+        <div class="inp-wrap"><span class="inp-prefix">$</span>
+          <input type="number" id="crypto_other" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+        <div class="field-hint">Held for investment/wealth accumulation</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. STOCK PORTFOLIO -->
+<div class="section-card">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="section-icon">📈</div>
+    <div class="section-title-wrap">
+      <div class="label-caps">Category 4</div>
+      <div class="section-title">Stock Portfolio</div>
+    </div>
+    <div class="section-subtotal" id="sub-stocks">—</div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="section-body">
+    <div class="fields-grid">
+      <div class="field">
+        <div class="field-lbl">Publicly traded stocks (market value)</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="stocks_traded" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">ETFs & Index funds</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="stocks_etf" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Dividend stocks (market value)</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="stocks_dividend" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Investment funds</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="stocks_funds" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. REAL ESTATE -->
+<div class="section-card">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="section-icon">🏠</div>
+    <div class="section-title-wrap">
+      <div class="label-caps">Category 5</div>
+      <div class="section-title">Real Estate Investments</div>
+    </div>
+    <div class="section-subtotal" id="sub-realestate">—</div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="section-body">
+    <p style="font-size:12px;color:var(--text-muted);margin-top:14px;line-height:1.7;background:rgba(201,168,76,.06);border:.5px solid var(--border);border-radius:8px;padding:10px 14px;">
+      ⚠ Personal home &amp; vehicles are <strong>not zakatable</strong>. Enter only investment/rental properties and the <em>zakatable portion</em> (typically rental income, or full value if held for resale).
+    </p>
+    <div class="fields-grid" style="margin-top:10px">
+      <div class="field">
+        <div class="field-lbl">Rental income (annual, zakatable)</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="re_rental" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Property held for resale (full value)</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="re_resale" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">REITs / Real estate funds</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="re_reit" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Other zakatable real estate value</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="re_other" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. OTHER INVESTMENTS -->
+<div class="section-card">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="section-icon">💼</div>
+    <div class="section-title-wrap">
+      <div class="label-caps">Category 6</div>
+      <div class="section-title">Other Investments &amp; Business</div>
+    </div>
+    <div class="section-subtotal" id="sub-other">—</div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="section-body">
+    <div class="fields-grid">
+      <div class="field">
+        <div class="field-lbl">Business inventory (market value)</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="biz_inventory" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Business profits / receivables</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="biz_profits" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Loans owed to you (receivable)</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="biz_receivable" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Pension / retirement fund (accessible)</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="biz_pension" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. DEDUCTIBLE DEBTS -->
+<div class="section-card">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="section-icon">📉</div>
+    <div class="section-title-wrap">
+      <div class="label-caps">Deductions</div>
+      <div class="section-title">Debts &amp; Liabilities</div>
+    </div>
+    <div class="section-subtotal" id="sub-debts" style="color:#E74C3C">—</div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="section-body">
+    <p style="font-size:12px;color:var(--text-muted);margin-top:14px;line-height:1.7;background:rgba(231,76,60,.06);border:.5px solid rgba(231,76,60,.2);border-radius:8px;padding:10px 14px;">
+      Only deduct debts that are <strong>immediately due</strong> or due within the current lunar year. Long-term mortgages are generally deducted only for the installment due this year.
+    </p>
+    <div class="fields-grid" style="margin-top:10px">
+      <div class="field">
+        <div class="field-lbl">Short-term loans due this year</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="debt_loans" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Bills &amp; expenses due</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="debt_bills" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Mortgage installment (this year only)</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="debt_mortgage" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-lbl">Other immediate liabilities</div>
+        <div class="inp-wrap"><span class="inp-prefix cssym">$</span>
+          <input type="number" id="debt_other" min="0" placeholder="0.00" oninput="calculate()"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESULT BOX ═══════════════════════════════════════════════════ -->
+<div class="result-box" id="resultBox">
+  <div class="result-status">
+    <div class="status-icon" id="statusIcon"></div>
+    <div>
+      <div class="status-title" id="statusTitle">—</div>
+      <div class="status-sub" id="statusSub">—</div>
+    </div>
+  </div>
+  <div class="result-rows">
+    <div class="rrow"><span class="rl">Total assets</span><span class="rv" id="rAssets">—</span></div>
+    <div class="rrow"><span class="rl">Total debts deducted</span><span class="rv danger" id="rDebts">—</span></div>
+    <div class="rrow"><span class="rl">Net zakatable wealth</span><span class="rv highlight" id="rNet">—</span></div>
+    <div class="rrow"><span class="rl">Nisab threshold (active)</span><span class="rv" id="rNisab">—</span></div>
+    <div class="rrow"><span class="rl">Gold Nisab (85g)</span><span class="rv" id="rGoldNisab">—</span></div>
+    <div class="rrow"><span class="rl">Silver Nisab (595g)</span><span class="rv" id="rSilverNisab">—</span></div>
+  </div>
+  <div class="zakat-final" id="zakatFinal"></div>
+
+  <!-- Breakdown table -->
+  <div class="breakdown-section" id="breakdownSection" style="display:none">
+    <div class="breakdown-title">Asset Breakdown</div>
+    <table class="breakdown-table">
+      <thead>
+        <tr>
+          <th>Asset Class</th>
+          <th>Category</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody id="breakdownBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ EDUCATIONAL PANEL ════════════════════════════════════════════ -->
+<div class="edu-panel">
+  <div class="edu-head" onclick="toggleEdu(this)">
+    <div class="edu-head-icon">📚</div>
+    <div class="edu-head-text">
+      <h3>Learn About Zakat</h3>
+      <p>Which assets are zakatable? Islamic finance principles explained</p>
+    </div>
+    <div class="chevron" style="margin-left:auto">▼</div>
+  </div>
+  <div class="edu-body" id="eduBody">
+    <div class="edu-hadith">
+      "Take from their wealth a charity by which you purify them and cause them increase."<br>
+      <span style="font-size:12px;color:var(--text-faint)">— Quran 9:103</span>
+    </div>
+    <div class="edu-legend">
+      <span><span class="dot" style="background:var(--success)"></span> Zakatable</span>
+      <span><span class="dot" style="background:#E74C3C"></span> Not Zakatable</span>
+      <span><span class="dot" style="background:var(--gold)"></span> Conditional</span>
+    </div>
+    <div class="edu-grid">
+      <div class="edu-card zakatable">
+        <div class="edu-card-icon">💵</div>
+        <h4>Cash &amp; Bank Savings</h4>
+        <p>All cash savings held for one lunar year (hawl) that exceed the Nisab threshold are fully zakatable at 2.5%. This includes savings accounts, fixed deposits, and cash at home.</p>
+      </div>
+      <div class="edu-card zakatable">
+        <div class="edu-card-icon">🥇</div>
+        <h4>Gold &amp; Silver</h4>
+        <p>Gold and silver are zakatable when they meet their own Nisab: 85g gold or 595g silver. The zakatable amount is their full current market value at 2.5%. Personal jewellery rules vary by madhab.</p>
+      </div>
+      <div class="edu-card conditional">
+        <div class="edu-card-icon">₿</div>
+        <h4>Cryptocurrency</h4>
+        <p>Most contemporary scholars treat crypto held for investment/wealth as zakatable at 2.5% of its current market value. Crypto used for transactions may be treated differently. Consult your scholar.</p>
+      </div>
+      <div class="edu-card conditional">
+        <div class="edu-card-icon">📈</div>
+        <h4>Stocks &amp; ETFs</h4>
+        <p>Shares held for capital gain are zakatable on their current market value. Shares in a business may require a deeper zakatable asset calculation. Dividend stocks: zakat on current value + dividends received.</p>
+      </div>
+      <div class="edu-card conditional">
+        <div class="edu-card-icon">🏠</div>
+        <h4>Real Estate</h4>
+        <p>Personal home is NOT zakatable. Rental income is zakatable. Property held for resale: full value is zakatable. REITs and investment property: zakatable on the investment portion.</p>
+      </div>
+      <div class="edu-card zakatable">
+        <div class="edu-card-icon">💼</div>
+        <h4>Business Assets</h4>
+        <p>Business inventory (goods for sale) is fully zakatable at market value. Business profits and receivables are zakatable. Fixed assets used in production (machinery, buildings) are generally not zakatable.</p>
+      </div>
+      <div class="edu-card not-zakatable">
+        <div class="edu-card-icon">🚗</div>
+        <h4>Personal Use Assets</h4>
+        <p>Personal home, personal vehicles, household furniture, and clothing are NOT zakatable. These are assets for personal use and consumption, not wealth accumulation.</p>
+      </div>
+      <div class="edu-card conditional">
+        <div class="edu-card-icon">🏦</div>
+        <h4>Pensions &amp; Retirement</h4>
+        <p>Pension funds accessible to you are generally zakatable on the accessible amount. Funds locked until retirement: scholars differ — some say zakat when received, others say annually. Follow your scholar's guidance.</p>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:rgba(201,168,76,.07);border:.5px solid var(--border);border-radius:8px;padding:14px 16px">
+      <p style="font-size:12px;color:var(--text-muted);line-height:1.8"><strong style="color:var(--gold-light)">The Hawl (Lunar Year) Requirement:</strong> Zakat is only obligatory on wealth that has been in your possession for one complete Islamic lunar year (approximately 354 days) AND remains above the Nisab at both the beginning and end of that year.</p>
+    </div>
+    <div style="margin-top:10px;background:rgba(201,168,76,.07);border:.5px solid var(--border);border-radius:8px;padding:14px 16px">
+      <p style="font-size:12px;color:var(--text-muted);line-height:1.8"><strong style="color:var(--gold-light)">Which Nisab to use?</strong> The gold Nisab (85g) generally yields a higher threshold. The silver Nisab (595g) is lower and means more people become liable. Most scholars today recommend the silver standard as it is more inclusive and ensures more Muslims fulfil their obligation.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ ZAKAT YEAR TRACKER ═══════════════════════════════════════════ -->
+<div class="tracker-card" id="trackerCard">
+  <div class="tracker-head" onclick="toggleTracker(this)">
+    <div class="section-icon">🗓</div>
+    <div class="section-title-wrap">
+      <div class="label-caps">Zakat Year Tracker</div>
+      <div class="section-title">Hawl Progress &amp; Due Date</div>
+    </div>
+    <div class="chevron" style="margin-left:auto">▼</div>
+  </div>
+  <div class="tracker-body" id="trackerBody" style="display:none">
+    <div class="tracker-grid">
+
+      <!-- Left: date input + progress -->
+      <div>
+        <div class="tracker-date-row">
+          <label>Zakat Year Start Date (Gregorian)</label>
+          <input type="date" id="zakatStartDate" onchange="updateTracker()"/>
+          <div class="hijri-label" id="hijriStart">Enter the date your Nisab was first met</div>
+        </div>
+
+        <div class="progress-wrap" id="progressWrap" style="display:none">
+          <div class="progress-label-row">
+            <span class="pl">Hawl Progress (354 lunar days)</span>
+            <span class="pct" id="progressPct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+          <div class="progress-months">
+            <span>Start</span><span>3M</span><span>6M</span><span>9M</span><span>Due</span>
+          </div>
+          <div class="milestones" id="milestones"></div>
+        </div>
+      </div>
+
+      <!-- Right: stat cards -->
+      <div id="trackerStats" style="display:none">
+        <div class="tracker-stats">
+          <div class="tstat">
+            <div class="ts-label">Days Elapsed</div>
+            <div class="ts-value" id="tDaysElapsed">—</div>
+            <div class="ts-sub">of 354 lunar days</div>
+          </div>
+          <div class="tstat">
+            <div class="ts-label">Days Remaining</div>
+            <div class="ts-value" id="tDaysLeft">—</div>
+            <div class="ts-sub" id="tDaysLeftSub">until Zakat due</div>
+          </div>
+          <div class="tstat">
+            <div class="ts-label">Zakat Due Date</div>
+            <div class="ts-value" id="tDueDate">—</div>
+            <div class="ts-sub" id="tDueDateHijri">—</div>
+          </div>
+        </div>
+
+        <div class="tracker-stats" style="margin-top:10px">
+          <div class="tstat">
+            <div class="ts-label">Current Net Wealth</div>
+            <div class="ts-value" id="tNetWealth">—</div>
+            <div class="ts-sub" id="tWealthStatus">—</div>
+          </div>
+          <div class="tstat">
+            <div class="ts-label">Nisab Threshold</div>
+            <div class="ts-value" id="tNisabVal">—</div>
+            <div class="ts-sub" id="tNisabType">—</div>
+          </div>
+          <div class="tstat">
+            <div class="ts-label">Est. Zakat Due</div>
+            <div class="ts-value" id="tZakatEst">—</div>
+            <div class="ts-sub">2.5% of net wealth</div>
+          </div>
+        </div>
+
+        <div id="hawlStatusBadge"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <p>Prices: Gold $162.07/g · Silver $1.05/g · BTC &amp; ETH via CoinGecko (live)</p>
+  <p>Zakat = 2.5% of net zakatable wealth held above Nisab for one complete lunar year</p>
+  <p style="margin-top:4px;opacity:.5">Consult a qualified Islamic scholar for your personal situation</p>
+</footer>
+
+</div><!-- /page -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════ */
+const STATE = {
+  currency: 'USD',
+  symbol:   '$',
+  nisab:    'gold',
+  detectedCurrency: null,   // set by locale detection
+  // Live prices (USD)
+  goldPerGram:   162.07,
+  silverPerGram: 1.05,
+  btcPrice:      0,
+  ethPrice:      0,
+  // FX rates (1 USD = X) — updated live from Frankfurter
+  fx: { USD:1, NGN:1640, GBP:0.79, EUR:0.92,
+        SAR:3.75, AED:3.67, MYR:4.47, PKR:278,
+        BDT:110,  TRY:32.5, EGP:48.5, INR:83.1,
+        IDR:15600, CAD:1.36, AUD:1.54 },
+  // Input modes
+  metalsMode: 'grams',
+  cryptoMode: 'qty',
+  lastNetWealthUSD: 0,
+};
+
+const GOLD_NISAB_G   = 85;
+const SILVER_NISAB_G = 595;
+
+/* ═══════════════════════════════════════════════════════════
+   LIVE PRICE FETCHING
+   ═══════════════════════════════════════════════════════════ */
+async function fetchPrices() {
+  /* --- FX rates: fetch all supported currencies at once --- */
+  try {
+    const targets = 'NGN,GBP,EUR,SAR,AED,MYR,PKR,BDT,TRY,EGP,INR,IDR,CAD,AUD';
+    const r = await fetch(`https://api.frankfurter.app/latest?from=USD&to=${targets}`);
+    if (r.ok) {
+      const d = await r.json();
+      Object.keys(d.rates).forEach(k => { STATE.fx[k] = d.rates[k]; });
+    }
+  } catch(e) {}
+
+  /* --- Gold & Silver (hardcoded fallback — March 2026) --- */
+  STATE.goldPerGram   = 162.07;
+  STATE.silverPerGram = 1.05;
+
+  /* --- Crypto via CoinGecko (free, no key) --- */
+  try {
+    const r = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd',
+      { signal: AbortSignal.timeout(5000) }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      STATE.btcPrice = d.bitcoin?.usd  || 0;
+      STATE.ethPrice = d.ethereum?.usd || 0;
+    }
+  } catch(e) {}
+
+  /* --- Detect locale AFTER fx rates are loaded --- */
+  detectLocale();
+
+  updatePriceBar();
+  refreshNisab();
+  calculate();
+}
+
+function updatePriceBar() {
+  const s = STATE.symbol;
+  const r = STATE.fx[STATE.currency] || 1;
+  document.getElementById('pGold').textContent   = '$' + STATE.goldPerGram.toFixed(2);
+  document.getElementById('pSilver').textContent = '$' + STATE.silverPerGram.toFixed(3);
+  document.getElementById('pBTC').textContent    = STATE.btcPrice
+    ? '$' + Math.round(STATE.btcPrice).toLocaleString() : '—';
+  document.getElementById('pETH').textContent    = STATE.ethPrice
+    ? '$' + Math.round(STATE.ethPrice).toLocaleString() : '—';
+  const status = document.getElementById('priceStatus');
+  status.innerHTML = '<span class="pulse"></span> Prices live';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FORMATTING
+   ═══════════════════════════════════════════════════════════ */
+function fmt(usdVal) {
+  /* Convert a USD value to base currency and format */
+  const rate = STATE.fx[STATE.currency] || 1;
+  const val  = usdVal * rate;
+  const s    = STATE.symbol;
+  if (val >= 1_000_000) return s + (val/1_000_000).toFixed(2) + 'M';
+  if (val >= 1_000)     return s + Math.round(val).toLocaleString();
+  return s + val.toFixed(2);
+}
+
+function fmtUSD(v) { return '$' + (v >= 1000 ? Math.round(v).toLocaleString() : v.toFixed(2)); }
+
+/* ═══════════════════════════════════════════════════════════
+   LOCALE DETECTION
+   Maps browser locale / timezone to a default currency.
+   Falls back to USD if unknown.
+   ═══════════════════════════════════════════════════════════ */
+const LOCALE_MAP = {
+  /* country code → { currency, symbol, flag, label } */
+  'US':{ cur:'USD', sym:'$',    flag:'🇺🇸', label:'United States'   },
+  'GB':{ cur:'GBP', sym:'£',    flag:'🇬🇧', label:'United Kingdom'   },
+  'NG':{ cur:'NGN', sym:'₦',    flag:'🇳🇬', label:'Nigeria'          },
+  'DE':{ cur:'EUR', sym:'€',    flag:'🇩🇪', label:'Germany'          },
+  'FR':{ cur:'EUR', sym:'€',    flag:'🇫🇷', label:'France'           },
+  'IT':{ cur:'EUR', sym:'€',    flag:'🇮🇹', label:'Italy'            },
+  'ES':{ cur:'EUR', sym:'€',    flag:'🇪🇸', label:'Spain'            },
+  'NL':{ cur:'EUR', sym:'€',    flag:'🇳🇱', label:'Netherlands'      },
+  'SA':{ cur:'SAR', sym:'﷼',   flag:'🇸🇦', label:'Saudi Arabia'     },
+  'AE':{ cur:'AED', sym:'د.إ', flag:'🇦🇪', label:'UAE'              },
+  'MY':{ cur:'MYR', sym:'RM',   flag:'🇲🇾', label:'Malaysia'         },
+  'PK':{ cur:'PKR', sym:'₨',   flag:'🇵🇰', label:'Pakistan'         },
+  'BD':{ cur:'BDT', sym:'৳',   flag:'🇧🇩', label:'Bangladesh'       },
+  'TR':{ cur:'TRY', sym:'₺',   flag:'🇹🇷', label:'Turkey'           },
+  'EG':{ cur:'EGP', sym:'E£',  flag:'🇪🇬', label:'Egypt'            },
+  'IN':{ cur:'INR', sym:'₹',   flag:'🇮🇳', label:'India'            },
+  'ID':{ cur:'IDR', sym:'Rp',  flag:'🇮🇩', label:'Indonesia'        },
+  'CA':{ cur:'CAD', sym:'C$',  flag:'🇨🇦', label:'Canada'           },
+  'AU':{ cur:'AUD', sym:'A$',  flag:'🇦🇺', label:'Australia'        },
+  'QA':{ cur:'SAR', sym:'﷼',  flag:'🇶🇦', label:'Qatar'            },
+  'KW':{ cur:'SAR', sym:'﷼',  flag:'🇰🇼', label:'Kuwait'           },
+  'MA':{ cur:'EUR', sym:'€',   flag:'🇲🇦', label:'Morocco'          },
+  'TN':{ cur:'EUR', sym:'€',   flag:'🇹🇳', label:'Tunisia'          },
+  'SN':{ cur:'EUR', sym:'€',   flag:'🇸🇳', label:'Senegal'          },
+  'GH':{ cur:'USD', sym:'$',   flag:'🇬🇭', label:'Ghana'            },
+  'KE':{ cur:'USD', sym:'$',   flag:'🇰🇪', label:'Kenya'            },
+  'ZA':{ cur:'USD', sym:'$',   flag:'🇿🇦', label:'South Africa'     },
+};
+
+/* Timezone → likely country (broad heuristic for common Muslim-majority zones) */
+const TZ_COUNTRY = {
+  'Africa/Lagos':        'NG',
+  'Africa/Abuja':        'NG',
+  'Africa/Cairo':        'EG',
+  'Africa/Casablanca':   'MA',
+  'Africa/Dakar':        'SN',
+  'Africa/Nairobi':      'KE',
+  'Africa/Johannesburg': 'ZA',
+  'Africa/Accra':        'GH',
+  'Asia/Riyadh':         'SA',
+  'Asia/Dubai':          'AE',
+  'Asia/Karachi':        'PK',
+  'Asia/Dhaka':          'BD',
+  'Asia/Kuala_Lumpur':   'MY',
+  'Asia/Istanbul':       'TR',
+  'Asia/Kolkata':        'IN',
+  'Asia/Jakarta':        'ID',
+  'Asia/Qatar':          'QA',
+  'Asia/Kuwait':         'KW',
+  'Europe/London':       'GB',
+  'Europe/Berlin':       'DE',
+  'Europe/Paris':        'FR',
+  'Europe/Rome':         'IT',
+  'Europe/Madrid':       'ES',
+  'America/New_York':    'US',
+  'America/Chicago':     'US',
+  'America/Los_Angeles': 'US',
+  'America/Toronto':     'CA',
+  'Australia/Sydney':    'AU',
+};
+
+function detectLocale() {
+  let countryCode = null;
+
+  /* 1. Try Intl.Locale from navigator.language (most reliable, privacy-safe) */
+  try {
+    const locale = new Intl.Locale(navigator.language || 'en-US');
+    // locale.region gives the country part of e.g. "en-GB" → "GB"
+    if (locale.region && LOCALE_MAP[locale.region]) {
+      countryCode = locale.region;
+    }
+  } catch(e) {}
+
+  /* 2. Fallback: timezone heuristic */
+  if (!countryCode) {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz && TZ_COUNTRY[tz]) countryCode = TZ_COUNTRY[tz];
+    } catch(e) {}
+  }
+
+  /* 3. Fallback: parse language tag manually */
+  if (!countryCode) {
+    try {
+      const lang = (navigator.language || navigator.languages?.[0] || 'en-US');
+      const parts = lang.split('-');
+      if (parts.length >= 2) {
+        const cc = parts[parts.length - 1].toUpperCase();
+        if (LOCALE_MAP[cc]) countryCode = cc;
+      }
+    } catch(e) {}
+  }
+
+  const info = countryCode ? LOCALE_MAP[countryCode] : null;
+
+  /* Update the locale pill */
+  const pill  = document.getElementById('localePill');
+  const flag  = document.getElementById('localeFlag');
+  const text  = document.getElementById('localeText');
+
+  if (info) {
+    flag.textContent = info.flag;
+    text.textContent = `${info.label} — auto-detected`;
+    pill.classList.add('detected');
+    STATE.detectedCurrency = info.cur;
+
+    /* Highlight the detected currency button */
+    const detectedBtn = document.getElementById(`curBtn_${info.cur}`);
+    if (detectedBtn) detectedBtn.classList.add('detected-cur');
+
+    /* If the detected currency is in the "more" panel, show it */
+    const moreCurrencies = document.getElementById('moreCurrencies');
+    const isPrimary = ['USD','NGN','GBP','EUR'].includes(info.cur);
+    if (!isPrimary && moreCurrencies) {
+      moreCurrencies.classList.remove('hidden');
+      document.getElementById('showMoreCur').textContent = 'Less ▴';
+    }
+
+    /* Auto-apply the detected currency */
+    applyCurrency(info.cur, info.sym);
+  } else {
+    flag.textContent = '🌐';
+    text.textContent = 'Location unknown — using USD';
+    applyCurrency('USD', '$');
+  }
+}
+
+/* Internal: set currency state + update all UI without needing a button ref */
+function applyCurrency(c, sym) {
+  STATE.currency = c;
+  STATE.symbol   = sym;
+  /* Mark the right button active */
+  document.querySelectorAll('[id^="curBtn_"]').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById(`curBtn_${c}`);
+  if (btn) btn.classList.add('active');
+  /* Update prefix symbols on base-currency inputs */
+  document.querySelectorAll('.cssym').forEach(el => el.textContent = sym);
+  refreshNisab();
+  calculate();
+}
+
+/* Called when user manually clicks a currency button */
+function setCurrencyManual(c, sym, btn) {
+  /* Clear detected highlight if switching away from auto */
+  document.querySelectorAll('[id^="curBtn_"]').forEach(b => {
+    b.classList.remove('active');
+  });
+  btn.classList.add('active');
+
+  /* Update locale pill to show manual override */
+  const pill = document.getElementById('localePill');
+  const text = document.getElementById('localeText');
+  pill.classList.remove('detected');
+  text.textContent = `${c} — manual`;
+  document.getElementById('localeFlag').textContent = '✎';
+
+  applyCurrency(c, sym);
+}
+
+/* Keep old setCurrency alias so nothing breaks */
+function setCurrency(c, sym, btn) { setCurrencyManual(c, sym, btn); }
+
+function toggleMoreCurrencies() {
+  const more = document.getElementById('moreCurrencies');
+  const btn  = document.getElementById('showMoreCur');
+  const hidden = more.classList.toggle('hidden');
+  btn.textContent = hidden ? 'More ▾' : 'Less ▴';
+}
+
+function setNisab(type, btn) {
+  STATE.nisab = type;
+  ['nisabGoldBtn','nisabSilverBtn'].forEach(id => document.getElementById(id).classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('nisabActiveLabel').textContent =
+    type === 'gold' ? 'Using Gold Nisab' : 'Using Silver Nisab';
+  refreshNisab();
+  calculate();
+}
+
+function refreshNisab() {
+  const goldN   = STATE.goldPerGram   * GOLD_NISAB_G;
+  const silverN = STATE.silverPerGram * SILVER_NISAB_G;
+  document.getElementById('nisabGoldVal').textContent   = fmt(goldN);
+  document.getElementById('nisabSilverVal').textContent = fmt(silverN);
+  document.getElementById('nisabGoldSub').textContent   =
+    `85g × ${fmtUSD(STATE.goldPerGram)}/g`;
+  document.getElementById('nisabSilverSub').textContent =
+    `595g × ${fmtUSD(STATE.silverPerGram)}/g`;
+}
+
+function toggleSection(head) {
+  head.classList.toggle('open');
+  const body = head.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function toggleEdu(head) {
+  const body = document.getElementById('eduBody');
+  const chev = head.querySelector('.chevron');
+  body.classList.toggle('open');
+  chev.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+
+function setMode(category, mode, btn) {
+  Array.from(btn.parentElement.children).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (category === 'metals') {
+    STATE.metalsMode = mode;
+    document.getElementById('metals-grams').style.display = mode === 'grams' ? '' : 'none';
+    document.getElementById('metals-value').style.display = mode === 'value' ? '' : 'none';
+  } else if (category === 'crypto') {
+    STATE.cryptoMode = mode;
+    document.getElementById('crypto-qty').style.display   = mode === 'qty'   ? '' : 'none';
+    document.getElementById('crypto-value').style.display = mode === 'value' ? '' : 'none';
+  }
+  calculate();
+}
+
+function v(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
+
+/* ═══════════════════════════════════════════════════════════
+   CORE CALCULATION
+   Every input value is normalised to USD internally,
+   then converted to base currency for display.
+   ═══════════════════════════════════════════════════════════ */
+function calculate() {
+  const fxNGN = STATE.fx.NGN || 1640;
+  const fxGBP = STATE.fx.GBP || 0.79;
+
+  /* ── 1. Cash Assets (USD) ─────────────────────────────── */
+  const cashUSD   = v('cash_usd')
+                  + v('cash_ngn') / fxNGN
+                  + v('cash_gbp') / fxGBP
+                  + v('cash_other')           // already USD
+                  + v('cash_savings') / (STATE.fx[STATE.currency]||1)
+                  + v('cash_mm')      / (STATE.fx[STATE.currency]||1);
+
+  /* ── 2. Precious Metals (USD) ─────────────────────────── */
+  let metalUSD = 0;
+  if (STATE.metalsMode === 'grams') {
+    const gGold   = v('gold_g');
+    const gSilver = v('silver_g');
+    metalUSD = gGold * STATE.goldPerGram + gSilver * STATE.silverPerGram;
+    // Update hints
+    document.getElementById('gold_g_hint').textContent   = gGold   ? `≈ ${fmtUSD(gGold * STATE.goldPerGram)}`   : 'Value: —';
+    document.getElementById('silver_g_hint').textContent = gSilver ? `≈ ${fmtUSD(gSilver * STATE.silverPerGram)}` : 'Value: —';
+  } else {
+    metalUSD = v('gold_v') / (STATE.fx[STATE.currency]||1)
+             + v('silver_v') / (STATE.fx[STATE.currency]||1);
+  }
+  metalUSD += v('metals_other'); // already USD
+
+  /* ── 3. Cryptocurrency (USD) ──────────────────────────── */
+  let cryptoUSD = 0;
+  if (STATE.cryptoMode === 'qty') {
+    const btcQty = v('btc_qty');
+    const ethQty = v('eth_qty');
+    const btcVal = btcQty * STATE.btcPrice;
+    const ethVal = ethQty * STATE.ethPrice;
+    cryptoUSD    = btcVal + ethVal + v('crypto_other');
+    document.getElementById('btc_hint').textContent = (btcQty && STATE.btcPrice)
+      ? `≈ ${fmtUSD(btcVal)}` : (STATE.btcPrice ? 'Enter quantity' : 'Price loading…');
+    document.getElementById('eth_hint').textContent = (ethQty && STATE.ethPrice)
+      ? `≈ ${fmtUSD(ethVal)}` : (STATE.ethPrice ? 'Enter quantity' : 'Price loading…');
+  } else {
+    cryptoUSD = v('btc_v') + v('eth_v') + v('crypto_other');
+  }
+
+  /* ── 4. Stocks (base currency → USD) ─────────────────── */
+  const bRate   = STATE.fx[STATE.currency] || 1;
+  const stocksUSD = (v('stocks_traded') + v('stocks_etf') + v('stocks_dividend') + v('stocks_funds')) / bRate;
+
+  /* ── 5. Real Estate (base → USD) ─────────────────────── */
+  const reUSD = (v('re_rental') + v('re_resale') + v('re_reit') + v('re_other')) / bRate;
+
+  /* ── 6. Other / Business (base → USD) ────────────────── */
+  const otherUSD = (v('biz_inventory') + v('biz_profits') + v('biz_receivable') + v('biz_pension')) / bRate;
+
+  /* ── 7. Debts (base → USD) ───────────────────────────── */
+  const debtsUSD = (v('debt_loans') + v('debt_bills') + v('debt_mortgage') + v('debt_other')) / bRate;
+
+  /* ── Totals ───────────────────────────────────────────── */
+  const totalAssetsUSD = cashUSD + metalUSD + cryptoUSD + stocksUSD + reUSD + otherUSD;
+  const netWealthUSD   = Math.max(0, totalAssetsUSD - debtsUSD);
+
+  /* Store for tracker */
+  STATE.lastNetWealthUSD = netWealthUSD;
+
+  /* ── Nisab ────────────────────────────────────────────── */
+  const goldNisabUSD   = STATE.goldPerGram   * GOLD_NISAB_G;
+  const silverNisabUSD = STATE.silverPerGram * SILVER_NISAB_G;
+  const activeNisabUSD = STATE.nisab === 'gold' ? goldNisabUSD : silverNisabUSD;
+
+  /* ── Zakat ────────────────────────────────────────────── */
+  const eligible = netWealthUSD >= activeNisabUSD;
+  const zakatUSD = eligible ? netWealthUSD * 0.025 : 0;
+
+  /* ── Update subtotals ─────────────────────────────────── */
+  const subs = [
+    ['sub-cash',      cashUSD],
+    ['sub-metals',    metalUSD],
+    ['sub-crypto',    cryptoUSD],
+    ['sub-stocks',    stocksUSD],
+    ['sub-realestate',reUSD],
+    ['sub-other',     otherUSD],
+    ['sub-debts',     debtsUSD],
+  ];
+  subs.forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val > 0 ? fmt(val) : '—';
+  });
+
+  /* ── Show result only if any data entered ─────────────── */
+  const hasData = totalAssetsUSD > 0 || debtsUSD > 0;
+  const box = document.getElementById('resultBox');
+  if (!hasData) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.className = 'result-box ' + (eligible ? 'eligible' : 'ineligible');
+
+  /* ── Result content ───────────────────────────────────── */
+  const icon = document.getElementById('statusIcon');
+  icon.innerHTML = eligible
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(247,242,232,0.4)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+
+  const nisabLabel = STATE.nisab === 'gold' ? 'Gold Nisab (85g)' : 'Silver Nisab (595g)';
+  document.getElementById('statusTitle').textContent = eligible
+    ? 'Zakat is obligatory on your wealth'
+    : 'Below Nisab — Zakat not yet obligatory';
+  document.getElementById('statusSub').textContent = eligible
+    ? `Your net wealth exceeds the ${nisabLabel} of ${fmt(activeNisabUSD)}`
+    : `Your net wealth is below the ${nisabLabel} of ${fmt(activeNisabUSD)}`;
+
+  document.getElementById('rAssets').textContent    = fmt(totalAssetsUSD);
+  document.getElementById('rDebts').textContent     = debtsUSD > 0 ? '− ' + fmt(debtsUSD) : '—';
+  document.getElementById('rNet').textContent       = fmt(netWealthUSD);
+  document.getElementById('rNisab').textContent     = fmt(activeNisabUSD);
+  document.getElementById('rGoldNisab').textContent = fmt(goldNisabUSD);
+  document.getElementById('rSilverNisab').textContent = fmt(silverNisabUSD);
+
+  const fin = document.getElementById('zakatFinal');
+  if (eligible) {
+    fin.innerHTML = `
+      <div class="zf-label">Zakat Due (2.5%)</div>
+      <div class="zf-amount">${fmt(zakatUSD)}</div>
+      <div class="zf-calc">${fmt(netWealthUSD)} × 2.5% = ${fmt(zakatUSD)}</div>`;
+  } else {
+    const needed = activeNisabUSD - netWealthUSD;
+    fin.innerHTML = `<div class="shortfall-msg">You need ${fmt(needed)} more in net wealth to reach the Nisab threshold.</div>`;
+  }
+
+  /* ── Breakdown table ──────────────────────────────────── */
+  const breakdown = [
+    { label:'Cash & savings',         cat:'Cash',       usd: cashUSD     },
+    { label:'Gold & silver',          cat:'Metals',     usd: metalUSD    },
+    { label:'Cryptocurrency',         cat:'Crypto',     usd: cryptoUSD   },
+    { label:'Stocks & funds',         cat:'Stocks',     usd: stocksUSD   },
+    { label:'Real estate (zakatable)',cat:'Real Estate', usd: reUSD      },
+    { label:'Business & other',       cat:'Business',   usd: otherUSD    },
+    { label:'Debts deducted',         cat:'Deduction',  usd: -debtsUSD   },
+  ].filter(r => Math.abs(r.usd) > 0.001);
+
+  const tbody = document.getElementById('breakdownBody');
+  tbody.innerHTML = breakdown.map(r => `
+    <tr>
+      <td>${r.label}</td>
+      <td><span class="cat-pill">${r.cat}</span></td>
+      <td style="${r.usd < 0 ? 'color:#E74C3C' : ''}">${r.usd < 0 ? '− ' : ''}${fmt(Math.abs(r.usd))}</td>
+    </tr>`).join('');
+
+  document.getElementById('breakdownSection').style.display =
+    breakdown.length > 0 ? 'block' : 'none';
+
+  /* Keep tracker in sync with latest wealth */
+  updateTracker();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════ */
+fetchPrices();
+// Refresh crypto prices every 60 seconds
+setInterval(async () => {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd',
+      { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      const d = await r.json();
+      STATE.btcPrice = d.bitcoin?.usd  || STATE.btcPrice;
+      STATE.ethPrice = d.ethereum?.usd || STATE.ethPrice;
+      updatePriceBar(); calculate();
+    }
+  } catch(e) {}
+}, 60000);
+
+/* ═══════════════════════════════════════════════════════════
+   ZAKAT YEAR TRACKER
+   ═══════════════════════════════════════════════════════════ */
+
+/* One Islamic lunar year = 354 days 8 hours 48 min 36 sec
+   We use 354.367 days as the standard approximation           */
+const LUNAR_YEAR_DAYS = 354.367;
+
+function toggleTracker(head) {
+  const body = document.getElementById('trackerBody');
+  const chev = head.querySelector('.chevron');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+/* Convert a Gregorian Date to a Hijri date string (approximate)
+   Uses the standard Kuwaiti algorithm                         */
+function gregorianToHijri(date) {
+  const jd = Math.floor((date.getTime() / 86400000) + 2440587.5);
+  let l = jd - 1948440 + 10632;
+  const n = Math.floor((l - 1) / 10631);
+  l = l - 10631 * n + 354;
+  const j = Math.floor((10985 - l) / 5316) * Math.floor(50 * l / 17719)
+          + Math.floor(l / 5670) * Math.floor(43 * l / 15238);
+  l = l - Math.floor((30 - j) / 15) * Math.floor(17719 * j / 50)
+        - Math.floor(j / 16) * Math.floor(15238 * j / 43) + 29;
+  const month = Math.floor(24 * l / 709);
+  const day   = l - Math.floor(709 * month / 24);
+  const year  = 30 * n + j - 30;
+  const months = ['Muharram','Safar','Rabi al-Awwal','Rabi al-Thani',
+                  'Jumada al-Awwal','Jumada al-Thani','Rajab','Sha\'ban',
+                  'Ramadan','Shawwal','Dhu al-Qi\'dah','Dhu al-Hijjah'];
+  return `${day} ${months[month - 1]} ${year} AH`;
+}
+
+/* Format a date as "14 Mar 2026" */
+function fmtDate(d) {
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+
+/* Main tracker update — called on date change and on calculate() */
+function updateTracker() {
+  const input   = document.getElementById('zakatStartDate');
+  const dateStr = input.value;
+
+  if (!dateStr) {
+    document.getElementById('progressWrap').style.display  = 'none';
+    document.getElementById('trackerStats').style.display  = 'none';
+    document.getElementById('hijriStart').textContent = 'Enter the date your Nisab was first met';
+    return;
+  }
+
+  /* Parse start date (local midnight to avoid timezone shifts) */
+  const [yr, mo, dy] = dateStr.split('-').map(Number);
+  const startDate = new Date(yr, mo - 1, dy);
+  const today     = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  /* Due date = start + 354.367 days */
+  const dueDateMs  = startDate.getTime() + LUNAR_YEAR_DAYS * 86400000;
+  const dueDate    = new Date(dueDateMs);
+
+  /* Elapsed / remaining */
+  const elapsedMs  = today.getTime() - startDate.getTime();
+  const elapsedDays = Math.max(0, Math.floor(elapsedMs / 86400000));
+  const totalDays   = Math.round(LUNAR_YEAR_DAYS);
+  const pct         = Math.min(100, Math.round((elapsedDays / LUNAR_YEAR_DAYS) * 100));
+  const daysLeft    = Math.max(0, Math.ceil((dueDateMs - today.getTime()) / 86400000));
+  const isOverdue   = today > dueDate;
+  const overdueBy   = isOverdue ? Math.floor((today.getTime() - dueDateMs) / 86400000) : 0;
+
+  /* ── Update Hijri labels ── */
+  document.getElementById('hijriStart').textContent = gregorianToHijri(startDate);
+
+  /* ── Progress bar ── */
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('progressFill').style.width   = pct + '%';
+  document.getElementById('progressPct').textContent    = pct + '%';
+
+  /* ── Milestone markers (3, 6, 9 month checkpoints) ── */
+  const milestones = [
+    { label:'3 Months', days: Math.round(LUNAR_YEAR_DAYS * 3/12) },
+    { label:'6 Months', days: Math.round(LUNAR_YEAR_DAYS * 6/12) },
+    { label:'9 Months', days: Math.round(LUNAR_YEAR_DAYS * 9/12) },
+    { label:'Hawl Complete', days: totalDays },
+  ];
+  document.getElementById('milestones').innerHTML = milestones.map(m => {
+    const passed  = elapsedDays >= m.days;
+    const current = elapsedDays >= m.days - 15 && elapsedDays < m.days + 15 && !passed;
+    const cls = passed ? 'passed' : (current ? 'current' : '');
+    const icon = passed ? '✓ ' : (current ? '→ ' : '');
+    return `<span class="milestone ${cls}">${icon}${m.label}</span>`;
+  }).join('');
+
+  /* ── Stat cards ── */
+  document.getElementById('trackerStats').style.display = 'block';
+  document.getElementById('tDaysElapsed').textContent   = elapsedDays.toLocaleString();
+  document.getElementById('tDaysLeft').textContent      = isOverdue ? 'Overdue' : daysLeft.toLocaleString();
+  document.getElementById('tDaysLeftSub').textContent   = isOverdue
+    ? `${overdueBy} day${overdueBy !== 1 ? 's' : ''} overdue`
+    : 'until Zakat due';
+  document.getElementById('tDueDate').textContent  = fmtDate(dueDate);
+  document.getElementById('tDueDateHijri').textContent = gregorianToHijri(dueDate);
+
+  /* ── Wealth status (pulled from live calculation) ── */
+  const rate      = STATE.fx[STATE.currency] || 1;
+  const goldN_usd = STATE.goldPerGram * GOLD_NISAB_G;
+  const silvN_usd = STATE.silverPerGram * SILVER_NISAB_G;
+  const nisabUSD  = STATE.nisab === 'gold' ? goldN_usd : silvN_usd;
+
+  /* Re-use the last calculated net wealth stored in STATE */
+  const netUSD    = STATE.lastNetWealthUSD || 0;
+  const zakatUSD  = netUSD >= nisabUSD ? netUSD * 0.025 : 0;
+  const aboveNisab = netUSD >= nisabUSD;
+
+  document.getElementById('tNetWealth').textContent  = netUSD > 0 ? fmt(netUSD) : '—';
+  document.getElementById('tNisabVal').textContent   = fmt(nisabUSD);
+  document.getElementById('tNisabType').textContent  = STATE.nisab === 'gold' ? 'Gold (85g)' : 'Silver (595g)';
+  document.getElementById('tZakatEst').textContent   = zakatUSD > 0 ? fmt(zakatUSD) : '—';
+  document.getElementById('tWealthStatus').textContent = netUSD > 0
+    ? (aboveNisab ? '✓ Above Nisab' : '✗ Below Nisab')
+    : 'Enter assets above';
+
+  /* ── Hawl status badge ── */
+  let badgeClass, badgeIcon, badgeText;
+  if (isOverdue) {
+    badgeClass = 'overdue';
+    badgeIcon  = '⚠';
+    badgeText  = `Zakat overdue by ${overdueBy} day${overdueBy !== 1 ? 's' : ''} — pay as soon as possible`;
+  } else if (pct >= 100) {
+    badgeClass = 'complete';
+    badgeIcon  = '✓';
+    badgeText  = 'Hawl complete — Zakat is now due';
+  } else {
+    badgeClass = 'pending';
+    badgeIcon  = '◐';
+    badgeText  = `Hawl in progress — ${daysLeft} day${daysLeft !== 1 ? 's' : ''} until Zakat due (${fmtDate(dueDate)})`;
+  }
+  document.getElementById('hawlStatusBadge').innerHTML =
+    `<div class="hawl-status ${badgeClass}">
+       <span class="hawl-dot"></span>${badgeIcon} ${badgeText}
+     </div>`;
+}
+</script>
+</body>
+</html>
